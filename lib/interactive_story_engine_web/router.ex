@@ -21,6 +21,7 @@ defmodule InteractiveStoryEngineWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    live "/chat", ChatLive, :view
   end
 
   # Other scopes may use custom stacks.
