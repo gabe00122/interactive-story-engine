@@ -1,0 +1,10 @@
+
+charecter
+- name
+- description
+- items
+- health
+- goals
+
+-- optional
+- wealth

@@ -1,54 +1,59 @@
 defmodule InteractiveStoryEngineWeb.ChatLive do
   use InteractiveStoryEngineWeb, :live_view
+  alias InteractiveStoryEngine.Message
 
   def render(assigns) do
     ~H"""
     <div>
-
       <%= for message <- @messages do %>
         <div>
-          <%= message.text %>
+          <b><%= message.name %>:</b>
+          <%= message.message %>
         </div>
       <% end %>
 
-      <.form for={@form} phx-submit="save">
-        <.input type="text" field={@form[:text]}/>
+      <.form id="msg-form" for={@form} phx-submit="new_message" phx-hook="Form">
+        <.input label="Name" type="text" field={@form[:name]} />
+        <.input id="msg" label="Message" type="text" field={@form[:message]} />
 
-        <button>Send</button>
+        <div class="py-2">
+          <.button>Send</.button>
+        </div>
       </.form>
     </div>
     """
   end
 
-  def mount(params, _session, socket) do
-
+  def mount(_params, _session, socket) do
     if connected?(socket) do
-      InteractiveStoryEngineWeb.Endpoint.subscribe("room")
-
+      Message.subscribe()
     end
 
-    socket = socket |> assign(
-      messages: []
-    )
+    messages = Message.list_messages() |> Enum.reverse()
+    changeset = Message.changeset(%Message{}, %{})
 
-    {:ok, socket |> assign(
-      form: to_form(params),
-      y: 0.0
-    )}
+    # socket = socket |> assign(messages: messages)
+
+    {:ok,
+     socket
+     |> assign(
+       messages: messages,
+       form: to_form(changeset)
+     )}
   end
 
-  def handle_event("save", params, socket) do
-    IO.inspect(params)
+  def handle_event("new_message", %{"message" => message}, socket) do
+    case Message.create_message(message) do
+      {:error, changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
 
-    text = params["text"]
-    message = %{text: text}
-
-    InteractiveStoryEngineWeb.Endpoint.broadcast("room", "message_sent", message)
-
-    {:noreply, socket}
+      :ok ->
+        changeset = Message.changeset(%Message{}, %{"name" => message["name"]})
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
   end
 
-  def handle_info(%{event: "message_sent", payload: message}, socket) do
+  def handle_info({:message_created, message}, socket) do
     socket = socket |> update(:messages, &(&1 ++ [message]))
 
     {:noreply, socket}
