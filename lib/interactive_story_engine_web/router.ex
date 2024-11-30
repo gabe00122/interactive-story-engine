@@ -21,7 +21,6 @@ defmodule InteractiveStoryEngineWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-    live "/chat", ChatLive, :view
   end
 
   # Other scopes may use custom stacks.
@@ -69,6 +68,8 @@ defmodule InteractiveStoryEngineWeb.Router do
       on_mount: [{InteractiveStoryEngineWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      live "/chat", ChatLive
     end
   end
 

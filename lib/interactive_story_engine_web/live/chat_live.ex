@@ -7,13 +7,12 @@ defmodule InteractiveStoryEngineWeb.ChatLive do
     <div>
       <%= for message <- @messages do %>
         <div>
-          <b><%= message.name %>:</b>
+          <b><%= message.user.email %>:</b>
           <%= message.message %>
         </div>
       <% end %>
 
       <.form id="msg-form" for={@form} phx-submit="new_message" phx-hook="Form">
-        <.input label="Name" type="text" field={@form[:name]} />
         <.input id="msg" label="Message" type="text" field={@form[:message]} />
 
         <div class="py-2">
@@ -30,26 +29,25 @@ defmodule InteractiveStoryEngineWeb.ChatLive do
     end
 
     messages = Message.list_messages() |> Enum.reverse()
-    changeset = Message.changeset(%Message{}, %{})
-
-    # socket = socket |> assign(messages: messages)
 
     {:ok,
      socket
      |> assign(
        messages: messages,
-       form: to_form(changeset)
+       form: to_form(%{})
      )}
   end
 
-  def handle_event("new_message", %{"message" => message}, socket) do
+  def handle_event("new_message", message, socket) do
+    message = Map.put(message, "user", socket.assigns.current_user)
+    IO.inspect(message)
+
     case Message.create_message(message) do
       {:error, changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
 
       :ok ->
-        changeset = Message.changeset(%Message{}, %{"name" => message["name"]})
-        {:noreply, assign(socket, form: to_form(changeset))}
+        {:noreply, assign(socket, form: to_form(%{"message" => ""}))}
     end
   end
 

@@ -9,15 +9,15 @@ defmodule InteractiveStoryEngine.Message do
 
   schema "messages" do
     field :message, :string
-    field :name, :string
+    belongs_to :user, InteractiveStoryEngine.Accounts.User
 
     timestamps()
   end
 
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:name, :message])
-    |> validate_required([:name, :message])
+    |> cast(attrs, [:message, :user_id])
+    |> validate_required([:message, :user_id])
     |> validate_length(:message, min: 2)
   end
 
