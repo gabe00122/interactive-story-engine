@@ -16,14 +16,15 @@ defmodule InteractiveStoryEngine.Message do
 
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:message, :user_id])
-    |> validate_required([:message, :user_id])
+    |> cast(attrs, [:message])
+    |> validate_required([:message])
     |> validate_length(:message, min: 2)
   end
 
-  def create_message(attrs) do
+  def create_message(attrs, user) do
     %Message{}
     |> changeset(attrs)
+    |> put_assoc(:user, user)
     |> Repo.insert()
     |> notify(:message_created)
   end
@@ -32,6 +33,7 @@ defmodule InteractiveStoryEngine.Message do
     Message
     |> limit(20)
     |> order_by(desc: :inserted_at)
+    |> preload(:user)
     |> Repo.all()
   end
 

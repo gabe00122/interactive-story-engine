@@ -22,20 +22,11 @@ import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
-let msg = document.getElementById("msg");
 
-// define "Form" hook, the name must match the one
-// defined with phx-hoo="Form"
-let Hooks = {};
-Hooks.Form = {
-  // Each time the form is updated run the code in the callback
-  updated() {
-    // If no error displayed reset the message value
-    if (document.getElementsByClassName("invalid-feedback").length == 0) {
-      msg.value = "";
-    }
-  },
-};
+window.addEventListener("phx:message-sent", () => {
+  const messageInput = document.getElementById("msg");
+  messageInput.value = "";
+});
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
@@ -43,7 +34,7 @@ let csrfToken = document
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: { _csrf_token: csrfToken },
-  hooks: Hooks,
+  // hooks: Hooks,
 });
 
 // Show progress bar on live navigation and form submits

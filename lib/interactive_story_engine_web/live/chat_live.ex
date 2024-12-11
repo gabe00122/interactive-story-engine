@@ -7,12 +7,12 @@ defmodule InteractiveStoryEngineWeb.ChatLive do
     <div>
       <%= for message <- @messages do %>
         <div>
-          <b><%= message.user.email %>:</b>
-          <%= message.message %>
+          <b>{ message.user.email }:</b>
+          { message.message }
         </div>
       <% end %>
 
-      <.form id="msg-form" for={@form} phx-submit="new_message" phx-hook="Form">
+      <.form id="msg-form" for={@form} phx-submit="new_message">
         <.input id="msg" label="Message" type="text" field={@form[:message]} />
 
         <div class="py-2">
@@ -39,14 +39,11 @@ defmodule InteractiveStoryEngineWeb.ChatLive do
   end
 
   def handle_event("new_message", message, socket) do
-    message = Map.put(message, "user", socket.assigns.current_user)
-    IO.inspect(message)
-
-    case Message.create_message(message) do
+    case Message.create_message(message, socket.assigns.current_user) do
       {:error, changeset} ->
         {:noreply, assign(socket, form: to_form(changeset))}
-
       :ok ->
+        socket = socket |> push_event("message-sent", %{})
         {:noreply, assign(socket, form: to_form(%{"message" => ""}))}
     end
   end
